@@ -1,6 +1,14 @@
 import os
 
-VECTORAI_HOST = os.environ.get("VECTORAI_HOST", "http://localhost:8080")
+from dotenv import load_dotenv
+
+# Reads ../.env (next to docker-compose.yml). Without this the API keys in
+# the team's .env are simply never seen.
+load_dotenv(os.path.join(os.path.dirname(__file__), os.pardir, ".env"))
+
+# gRPC endpoint: bare host:port, no scheme. 6574 is the SDK's default gRPC
+# port (6573 is REST) — see docker-compose.yml.
+VECTORAI_URL = os.environ.get("VECTORAI_URL", "localhost:6574")
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 

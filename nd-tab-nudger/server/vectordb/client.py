@@ -1,65 +1,82 @@
 """
 Shared VectorAI DB client + collection schemas.
 
-Uses the `actian-vectorai-client` SDK. The exact method names below
-(`create_collection`, `upsert`, `query`) follow the SDK's documented
-client pattern (host/port constructor, collection-scoped CRUD + KNN
-query returning (id, score, payload) tuples) — double-check against
-whatever version is installed via `pip show actian-vectorai-client` and
-adjust call sites here if a method signature differs. Every other module
-in this project goes through *this* file only, so a version mismatch is
-a one-file fix.
+Verified against `actian-vectorai-client` 1.0.2. Notes that cost us time
+once, so they're written down:
+
+- The pip package is `actian-vectorai-client`; the *import* is `actian_vectorai`.
+- The client is gRPC. `url` is bare `host:port` — passing a `http://` scheme
+  raises ValueError. Default gRPC port is 6574 (REST is 6573).
+- `connect()` must be called explicitly; the `collections`/`points`
+  namespaces proxy None until it is.
+- `points.scroll()` returns a `(points, next_offset)` tuple, not a list.
+
+Every other module goes through *this* file only, so an SDK change is a
+one-file fix.
 """
 
-from actian_vectorai_client import VectorAIClient
+import threading
 
-from config import VECTORAI_HOST, TABS_COLLECTION, LABELS_COLLECTION, EMBEDDING_DIM
+from actian_vectorai import VectorAIClient, VectorParams, Distance
+
+from config import VECTORAI_URL, TABS_COLLECTION, LABELS_COLLECTION, EMBEDDING_DIM
 
 _client = None
+_client_lock = threading.Lock()
 
 
 def get_client():
+    """Process-wide connected client. Flask's dev server is threaded, so
+    creation is guarded — two concurrent /ingest calls must not race."""
     global _client
     if _client is None:
-        _client = VectorAIClient(host=VECTORAI_HOST)
+        with _client_lock:
+            if _client is None:
+                client = VectorAIClient(url=VECTORAI_URL)
+                client.connect()
+                _client = client
     return _client
 
 
 def ensure_collections():
     """Idempotent: create both collections if they don't already exist."""
     client = get_client()
-    existing = {c.name for c in client.list_collections()}
+    # Cosine matches OpenAI embeddings, which ship normalized.
+    params = VectorParams(size=EMBEDDING_DIM, distance=Distance.Cosine)
 
-    if TABS_COLLECTION not in existing:
-        client.create_collection(name=TABS_COLLECTION, dimension=EMBEDDING_DIM)
-
-    if LABELS_COLLECTION not in existing:
-        client.create_collection(name=LABELS_COLLECTION, dimension=EMBEDDING_DIM)
+    for name in (TABS_COLLECTION, LABELS_COLLECTION):
+        client.collections.get_or_create(name, vectors_config=params)
 
 
 def upsert_tab(point_id, vector, payload):
     client = get_client()
-    client.collection(TABS_COLLECTION).upsert(id=point_id, vector=vector, payload=payload)
+    client.points.upsert_single(TABS_COLLECTION, id=point_id, vector=vector, payload=payload)
 
 
 def upsert_label_example(point_id, vector, payload):
     client = get_client()
-    client.collection(LABELS_COLLECTION).upsert(id=point_id, vector=vector, payload=payload)
+    client.points.upsert_single(LABELS_COLLECTION, id=point_id, vector=vector, payload=payload)
 
 
 def query_labels(vector, top_k):
-    """Returns nearest label-collection neighbors for classification."""
+    """Nearest label-collection neighbors for classification.
+    Returns a list of ScoredPoint (`.id`, `.score`, `.payload`)."""
     client = get_client()
-    return client.collection(LABELS_COLLECTION).query(vector=vector, top_k=top_k)
+    return client.points.search(LABELS_COLLECTION, vector, limit=top_k)
 
 
 def query_tabs(vector, top_k, filter=None):
-    """Returns nearest tabs-collection neighbors, optionally filtered."""
+    """Nearest tabs-collection neighbors, optionally filtered."""
     client = get_client()
-    return client.collection(TABS_COLLECTION).query(vector=vector, top_k=top_k, filter=filter)
+    return client.points.search(TABS_COLLECTION, vector, limit=top_k, filter=filter)
 
 
 def scroll_all_tabs(limit=100):
-    """Fetch all currently-tracked tab points (used to build ranking + open_tabs list)."""
+    """All currently-tracked tab points (builds ranking + the open_tabs list).
+
+    Unwraps the SDK's `(points, next_offset)` tuple and returns just the
+    list of RetrievedPoint — callers want the points.
+    """
     client = get_client()
-    return client.collection(TABS_COLLECTION).scroll(limit=limit)
+    points, _next_offset = client.points.scroll(TABS_COLLECTION, limit=limit)
+    return points

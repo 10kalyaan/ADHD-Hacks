@@ -37,15 +37,21 @@ Prereqs: Docker, Python 3.10+, an Anthropic API key, an OpenAI API key.
 
 ```bash
 cp .env.example .env   # fill in ANTHROPIC_API_KEY and OPENAI_API_KEY
-docker-compose up -d   # starts VectorAI DB on :8080
+docker compose up -d   # VectorAI DB: gRPC :6574, REST :6573, web UI :6575
 
 cd server
-python -m venv venv && source venv/bin/activate
+python -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
+python smoke_test.py              # optional: verifies the DB layer, no API key needed
 python -m ingestion.seed_labels   # seeds the labels collection once
 python app.py                     # starts Flask on :5000
 ```
+
+The SDK talks gRPC, so `VECTORAI_URL` is a bare `host:port` — a `http://`
+scheme is rejected. Browse the collections at <http://localhost:6575> while
+demoing.
 
 Then load the extension:
 

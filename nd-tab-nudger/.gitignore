@@ -1,4 +1,6 @@
 .env
 server/venv/
+server/.venv/
 __pycache__/
 *.pyc
+local_data/

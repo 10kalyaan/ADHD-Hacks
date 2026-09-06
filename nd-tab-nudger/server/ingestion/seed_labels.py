@@ -6,8 +6,19 @@ is up:
     python -m ingestion.seed_labels
 """
 
-from ingestion.embeddings import embed_text
+import uuid
+
+from ingestion.embeddings import embed_texts
 from vectordb.client import ensure_collections, upsert_label_example
+
+# The DB only accepts a non-negative int or a UUID as a point id, so seed ids
+# are derived as uuid5 — deterministic, so re-running this script overwrites
+# the same points instead of piling up duplicates that skew the KNN vote.
+_SEED_NAMESPACE = uuid.uuid5(uuid.NAMESPACE_DNS, "nd-tab-nudger.labels")
+
+
+def seed_point_id(index):
+    return str(uuid.uuid5(_SEED_NAMESPACE, f"seed-{index}"))
 
 SEED_EXAMPLES = [
     # work
@@ -36,10 +47,13 @@ SEED_EXAMPLES = [
 
 def run():
     ensure_collections()
-    for i, (label, text) in enumerate(SEED_EXAMPLES):
-        vector = embed_text(text)
+
+    # One batched embedding call for all examples, not one per example.
+    vectors = embed_texts([text for _label, text in SEED_EXAMPLES])
+
+    for i, ((label, text), vector) in enumerate(zip(SEED_EXAMPLES, vectors)):
         upsert_label_example(
-            point_id=f"seed-{i}",
+            point_id=seed_point_id(i),
             vector=vector,
             payload={"label": label, "text": text},
         )
