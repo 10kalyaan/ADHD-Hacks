@@ -293,7 +293,7 @@ body {
   background: linear-gradient(
     to bottom,
     var(--garden-bg) 0%,
-    var(--garden-bg) 52%,
+    var(--garden-bg) 42%,
     var(--garden-ground) 100%
   );
   border-color: var(--garden-line);
@@ -313,8 +313,8 @@ body {
 .sprouts {
   display: flex;
   flex-wrap: wrap;
-  gap: 11px;
-  min-height: 54px;
+  gap: 12px;
+  min-height: 115px;
   align-items: flex-end;
   /* Pushed to the foot of the panel so the sprouts read as growing up out
      of the ground rather than floating under the heading. */
@@ -322,9 +322,11 @@ body {
   margin-top: auto;
 }
 
-/* ~20% taller than the first pass, so the bed reads as the panel's subject
-   rather than a footnote under the heading. */
-.sprouts svg { width: 26px; height: 42px; }
+/* 2.5x the previous size. Scaled on both axes rather than stretched, so the
+   plants keep their proportions -- the viewBox scales the stroke widths with
+   them. The panel already stretches to the card stack's height, so there is
+   room for these without pushing the layout. */
+.sprouts svg { width: 65px; height: 105px; }
 
 .garden-note {
   margin: 0;
