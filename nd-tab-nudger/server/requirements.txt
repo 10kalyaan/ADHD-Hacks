@@ -1,6 +1,9 @@
 flask==3.0.3
 flask-cors==4.0.1
-openai==1.51.0
+# openai 1.51.0 breaks against the httpx 0.28 that google-genai pulls in:
+# it passes a `proxies` kwarg httpx removed, so every embedding call raises
+# TypeError. Any 1.55.3+ works; this is the version verified here.
+openai==3.8.0
 google-genai==2.22.0
 python-dotenv==1.0.1
 pytest==8.3.3

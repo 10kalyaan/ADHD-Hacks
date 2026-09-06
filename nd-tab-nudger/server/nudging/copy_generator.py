@@ -1,4 +1,5 @@
 import json
+import logging
 
 from google import genai
 from google.genai import types
@@ -6,20 +7,30 @@ from google.genai import types
 from config import GEMINI_API_KEY, HIGH_PRESSURE_VISIT_THRESHOLD
 from nudging.session_state import get_distraction_pressure
 
+log = logging.getLogger(__name__)
+
 _client = None
 
-MODEL = "gemini-flash-latest"
+# gemini-flash-latest returned 503 UNAVAILABLE ("high demand") on roughly two
+# of every three calls during testing, and gemini-2.5-flash 404s on this key.
+# flash-lite-latest was 3/3 and is plenty for one short line per tab.
+MODEL = "gemini-flash-lite-latest"
 
 FALLBACK_OVERLAY_LINE = "Something's waiting for you back in your tabs."
 
-RESPONSE_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "card_lines": {"type": "array", "items": {"type": "string"}},
-        "overlay_line": {"type": "string"},
+# Must be a types.Schema, not a plain dict. As a dict the schema was silently
+# not enforced: the model answered with a markdown preamble instead of JSON
+# and hit MAX_TOKENS before emitting any, so every call fell back.
+RESPONSE_SCHEMA = types.Schema(
+    type=types.Type.OBJECT,
+    properties={
+        "card_lines": types.Schema(
+            type=types.Type.ARRAY, items=types.Schema(type=types.Type.STRING)
+        ),
+        "overlay_line": types.Schema(type=types.Type.STRING),
     },
-    "required": ["card_lines", "overlay_line"],
-}
+    required=["card_lines", "overlay_line"],
+)
 
 # Grounded in ADHD task-initiation research, not just "be nice":
 #   - Implementation intentions (Gollwitzer): a concrete if-you-open-this,
@@ -83,7 +94,8 @@ def generate_copy(candidate_tabs):
     if not candidate_tabs:
         return [], "Nothing waiting on you right now — just vibes."
 
-    client = get_client()
+    fallback_lines = ["Still here, whenever you’re ready." for _ in candidate_tabs]
+
     payload = {
         "pressure": _pressure_level(),
         "tabs": [
@@ -92,16 +104,25 @@ def generate_copy(candidate_tabs):
         ],
     }
 
-    response = client.models.generate_content(
-        model=MODEL,
-        contents=json.dumps(payload),
-        config=types.GenerateContentConfig(
-            system_instruction=SYSTEM_PROMPT,
-            max_output_tokens=400,
-            response_mime_type="application/json",
-            response_schema=RESPONSE_SCHEMA,
-        ),
-    )
+    try:
+        client = get_client()
+        response = client.models.generate_content(
+            model=MODEL,
+            contents=json.dumps(payload),
+            config=types.GenerateContentConfig(
+                system_instruction=SYSTEM_PROMPT,
+                # 400 was not enough headroom: a short preamble consumed the
+                # budget and the response finished on MAX_TOKENS mid-JSON.
+                max_output_tokens=800,
+                response_mime_type="application/json",
+                response_schema=RESPONSE_SCHEMA,
+            ),
+        )
+    except Exception:
+        # Gemini 503s intermittently. Degrade to the static lines rather than
+        # letting the exception escape and take /nudge down with it.
+        log.warning("copy generation failed, using fallback lines", exc_info=True)
+        return fallback_lines, FALLBACK_OVERLAY_LINE
 
     try:
         parsed = json.loads(response.text)
