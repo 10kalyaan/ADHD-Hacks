@@ -7,6 +7,8 @@
 </head>
 <body>
   <main class="wrap">
+    <h1 class="greeting" id="greeting">Hello</h1>
+
     <form class="search" id="search-form" role="search">
       <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
         <circle cx="11" cy="11" r="7" /><line x1="16.5" y1="16.5" x2="21" y2="21" />
@@ -21,28 +23,40 @@
       />
     </form>
 
-    <h1 class="greeting" id="greeting">Hello</h1>
-
-    <section class="stats" aria-label="Session overview">
-      <div class="tile">
-        <span class="tile-label">Tabs open</span>
-        <strong class="tile-value" id="stat-open">–</strong>
-      </div>
-      <div class="tile">
-        <span class="tile-label">Closed this session</span>
-        <strong class="tile-value" id="stat-closed">–</strong>
-      </div>
-      <div class="tile">
-        <span class="tile-label">Longest waiting</span>
-        <strong class="tile-value" id="stat-oldest">–</strong>
-      </div>
-    </section>
-
     <div class="grid">
-      <div class="side">
-      <section class="panel" aria-labelledby="split-heading">
-        <h2 class="panel-title" id="split-heading">Today's split</h2>
+      <section class="panel garden" aria-labelledby="garden-heading">
+        <div class="panel-head">
+          <h2 class="panel-title" id="garden-heading">Your garden today</h2>
+          <span class="garden-count" id="garden-count"></span>
+        </div>
+        <div class="sprouts" id="sprouts" aria-hidden="true"></div>
+        <p class="garden-note" id="garden-note">
+          Every tab you act on plants something new. Nothing here ever wilts.
+        </p>
+      </section>
 
+      <section id="cards" class="cards" aria-label="Suggested tabs"></section>
+    </div>
+
+    <section class="panel screentime" aria-labelledby="screentime-heading">
+      <h2 class="panel-title" id="screentime-heading">Screen time today</h2>
+
+      <div class="stats">
+        <div class="tile">
+          <span class="tile-label">Tabs open</span>
+          <strong class="tile-value" id="stat-open">–</strong>
+        </div>
+        <div class="tile">
+          <span class="tile-label">Closed this session</span>
+          <strong class="tile-value" id="stat-closed">–</strong>
+        </div>
+        <div class="tile">
+          <span class="tile-label">Longest waiting</span>
+          <strong class="tile-value" id="stat-oldest">–</strong>
+        </div>
+      </div>
+
+      <div class="screentime-body">
         <div class="split">
           <svg
             class="pie"
@@ -55,33 +69,17 @@
           <ul class="legend" id="legend"></ul>
         </div>
 
-        <h3 class="panel-subtitle">Where they live</h3>
-        <ul class="domains" id="domains"></ul>
-      </section>
-
-      <section class="panel" aria-labelledby="open-heading">
-        <h2 class="panel-title" id="open-heading">Everything else that&rsquo;s open</h2>
-        <ul class="tab-list" id="tab-list"></ul>
-      </section>
-
+        <div class="where">
+          <h3 class="panel-subtitle">Where they live</h3>
+          <ul class="domains" id="domains"></ul>
+        </div>
       </div>
+    </section>
 
-      <div class="side">
-        <section class="panel garden" aria-labelledby="garden-heading">
-          <div class="panel-head">
-            <h2 class="panel-title" id="garden-heading">Your garden today</h2>
-            <span class="garden-count" id="garden-count"></span>
-          </div>
-          <div class="sprouts" id="sprouts" aria-hidden="true"></div>
-          <p class="garden-note" id="garden-note">
-            Every tab you act on plants something new. Nothing here ever wilts.
-          </p>
-        </section>
-
-        <section id="cards" class="cards" aria-label="Suggested tabs"></section>
-
-      </div>
-    </div>
+    <section class="panel" aria-labelledby="open-heading">
+      <h2 class="panel-title" id="open-heading">Everything else that&rsquo;s open</h2>
+      <ul class="tab-list" id="tab-list"></ul>
+    </section>
   </main>
 
   <script src="../shared/api-client.js"></script>

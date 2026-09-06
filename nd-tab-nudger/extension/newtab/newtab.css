@@ -21,6 +21,10 @@
      clear 3:1, the stem needed darkening to do the same, and the note text
      clears 4.5:1 at its size. */
   --garden-bg: #cfe9e0;
+  /* Slightly deeper band at the foot of the panel so the sprouts sit on
+     ground rather than in a void. Contrast re-checked at this darker value:
+     stem 3.37, buds 3.20-4.64, note 4.93 -- all still clear. */
+  --garden-ground: #c7e5db;
   --garden-line: #9ccfbf;
   --garden-ink: #0f6b52;
   --garden-note: #456358;
@@ -61,7 +65,7 @@ body {
   position: relative;
   display: flex;
   align-items: center;
-  margin-bottom: 40px;
+  margin-bottom: 22px;
 }
 
 .search-icon {
@@ -95,7 +99,7 @@ body {
 
 /* ---------- greeting ---------- */
 .greeting {
-  margin: 0 0 28px;
+  margin: 0 0 18px;
   font-family: ui-serif, Georgia, "Times New Roman", serif;
   font-style: italic;
   font-weight: 500;
@@ -106,16 +110,17 @@ body {
 /* ---------- stat tiles ---------- */
 .stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  margin-bottom: 20px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 16px 0 4px;
 }
 
+/* Inside the screentime card these are sub-panels, so they sit on the warm
+   tint rather than repeating the card's own surface and border. */
 .tile {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 18px 22px;
+  background: var(--surface-warm);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
 }
 
 .tile-label {
@@ -128,8 +133,8 @@ body {
 
 .tile-value {
   display: block;
-  margin-top: 6px;
-  font-size: 30px;
+  margin-top: 4px;
+  font-size: 26px;
   font-weight: 600;
   letter-spacing: -0.02em;
 }
@@ -141,7 +146,9 @@ body {
      width, so one long tab title pushes the whole grid past the viewport. */
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 20px;
-  align-items: start;
+  /* Stretch, not start: the garden is shorter than the card stack, and
+     letting it fill the row turns dead space into room for the bed. */
+  align-items: stretch;
 }
 
 .side {
@@ -149,6 +156,25 @@ body {
   gap: 20px;
   min-width: 0;
 }
+
+/* Panels stacked under the grid rather than inside a column. */
+.grid + .panel,
+.panel + .panel {
+  margin-top: 20px;
+}
+
+/* Pie and domain meters sit side by side now the card spans full width. */
+.screentime-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.where { min-width: 0; }
 
 .panel {
   min-width: 0;
@@ -175,9 +201,7 @@ body {
 }
 
 .panel-subtitle {
-  margin: 22px 0 10px;
-  padding-top: 18px;
-  border-top: 1px solid var(--line);
+  margin: 0 0 12px;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.09em;
@@ -190,7 +214,7 @@ body {
   display: flex;
   align-items: center;
   gap: 26px;
-  margin-top: 18px;
+  min-width: 0;
 }
 
 .pie { width: 132px; height: 132px; flex: none; }
@@ -264,7 +288,14 @@ body {
 
 /* ---------- garden ---------- */
 .garden {
-  background: var(--garden-bg);
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(
+    to bottom,
+    var(--garden-bg) 0%,
+    var(--garden-bg) 52%,
+    var(--garden-ground) 100%
+  );
   border-color: var(--garden-line);
   /* A soft lift so it reads as raised off the cream, not just recoloured. */
   box-shadow: 0 2px 10px rgba(15, 107, 82, 0.08);
@@ -285,7 +316,10 @@ body {
   gap: 11px;
   min-height: 54px;
   align-items: flex-end;
+  /* Pushed to the foot of the panel so the sprouts read as growing up out
+     of the ground rather than floating under the heading. */
   margin: 18px 0 14px;
+  margin-top: auto;
 }
 
 /* ~20% taller than the first pass, so the bed reads as the panel's subject
@@ -452,5 +486,9 @@ body {
 .error { color: #a8360a; }
 
 @media (max-width: 860px) {
-  .grid, .stats { grid-template-columns: 1fr; }
+  .grid,
+  .stats,
+  .screentime-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
