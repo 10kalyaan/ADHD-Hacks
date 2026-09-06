@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "ND Tab Nudger",
+  "version": "0.1.0",
+  "description": "Tracks your open tabs and nudges you toward what matters instead of doomscrolling.",
+  "permissions": ["tabs", "storage", "scripting"],
+  "host_permissions": [
+    "http://localhost:5000/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "chrome_url_overrides": {
+    "newtab": "newtab/newtab.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.reddit.com/*",
+        "*://*.twitter.com/*",
+        "*://*.x.com/*",
+        "*://*.instagram.com/*",
+        "*://*.youtube.com/*"
+      ],
+      "js": ["overlay/content-script.js"],
+      "css": ["overlay/overlay.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}

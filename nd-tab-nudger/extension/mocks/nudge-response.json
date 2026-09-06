@@ -1,0 +1,22 @@
+{
+  "cards": [
+    {
+      "tabId": 456,
+      "title": "Q3 planning doc",
+      "domain": "docs.google.com",
+      "line": "This one's been waiting patiently. Suspiciously patiently.",
+      "label": "work"
+    },
+    {
+      "tabId": 789,
+      "title": "React hooks guide",
+      "domain": "reactjs.org",
+      "line": "Still open from three hours ago. It's not going anywhere on its own.",
+      "label": "reference"
+    }
+  ],
+  "overlay_line": "Reddit again? Your Q3 doc says hi.",
+  "open_tabs": [
+    { "tabId": 111, "title": "Gmail", "domain": "mail.google.com", "openedAt": 1729999000000 }
+  ]
+}
