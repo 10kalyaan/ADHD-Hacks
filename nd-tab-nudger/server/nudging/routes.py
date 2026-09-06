@@ -29,6 +29,9 @@ def nudge():
             "title": t["title"],
             "domain": t["domain"],
             "openedAt": t["openedAt"],
+            # The New Tab page groups the session split by label, so it needs
+            # this on every tab, not just the ones promoted to cards.
+            "label": t.get("label"),
         }
         for t in all_tabs
         if t["tabId"] not in card_ids

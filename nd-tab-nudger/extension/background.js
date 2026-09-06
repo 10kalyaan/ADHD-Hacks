@@ -65,7 +65,22 @@ function scheduleSync() {
   syncTimer = setTimeout(syncOpenTabs, 400);
 }
 
+// Session-only counters the New Tab page reads for its stat row. storage.session
+// lives in memory and clears when the browser closes, which is exactly the
+// "this session" scope we want -- nothing persisted, nothing to clean up.
+async function bumpSessionCounter(key) {
+  try {
+    const stored = await chrome.storage.session.get(key);
+    await chrome.storage.session.set({ [key]: (stored[key] || 0) + 1 });
+  } catch (err) {
+    console.warn("[nd-tab-nudger] counter failed", err);
+  }
+}
+
 chrome.tabs.onRemoved.addListener((tabId) => {
+  // Only count tabs we were actually tracking, so closing a blank or internal
+  // page does not inflate the number.
+  if (trackedTabs.has(tabId)) bumpSessionCounter("closedCount");
   trackedTabs.delete(tabId);
   scheduleSync();
 });
@@ -94,6 +109,7 @@ async function focusTab(tabId) {
     if (tab.windowId != null) {
       await chrome.windows.update(tab.windowId, { focused: true });
     }
+    bumpSessionCounter("actedCount");
   } catch (err) {
     // Tab closed since /nudge was fetched — reconcile so it stops being
     // recommended.

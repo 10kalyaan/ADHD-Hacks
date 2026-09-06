@@ -56,7 +56,7 @@ Response:
   ],
   "overlay_line": "Reddit again? Your Q3 doc says hi.",
   "open_tabs": [
-    { "tabId": 111, "title": "Gmail", "domain": "mail.google.com", "openedAt": 1729999000000 }
+    { "tabId": 111, "title": "Gmail", "domain": "mail.google.com", "openedAt": 1729999000000, "label": "work" }
   ]
 }
 ```
