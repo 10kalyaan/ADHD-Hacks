@@ -13,6 +13,9 @@ const LABEL_ORDER = ["work", "sidequest", "chill"];
 // stays ranked by score -- the overlay still points at the top-ranked tab.
 const CARD_ORDER = ["sidequest", "work", "chill"];
 const SURFACE = "#fdf9f6";
+// Darker than the stem used on the cream panels: on the garden's teal the
+// lighter green only reached 2.6:1, under the 3:1 needed for a visible mark.
+const STEM = "#2f8560";
 
 const $ = (id) => document.getElementById(id);
 
@@ -190,12 +193,12 @@ function sprout(i) {
   s.append(
     svgEl("path", {
       d: "M13 42 C13 34 13 30 13 22",
-      stroke: "#3f9e6d", "stroke-width": 2.5, "stroke-linecap": "round", fill: "none",
+      stroke: STEM, "stroke-width": 2.5, "stroke-linecap": "round", fill: "none",
     }),
     svgEl("path", {
       d: left ? "M13 31 C7 31 4 28 4 24 C9 24 12 26 13 31 Z"
               : "M13 31 C19 31 22 28 22 24 C17 24 14 26 13 31 Z",
-      fill: "#3f9e6d",
+      fill: STEM,
     }),
     svgEl("ellipse", { cx: 13, cy: 13, rx: 6.5, ry: 10, fill: hue }),
     // A single highlight lifts the bud off the flat fill.

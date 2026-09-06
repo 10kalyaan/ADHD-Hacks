@@ -15,6 +15,17 @@
   --chill: #2a8a5f;
   --accent: #c2410c;
 
+  /* The garden is the one panel meant to catch the eye, so it breaks the
+     warm scheme for a bluish green. Every value here was contrast-checked
+     against that surface rather than picked by eye: the bud colours still
+     clear 3:1, the stem needed darkening to do the same, and the note text
+     clears 4.5:1 at its size. */
+  --garden-bg: #cfe9e0;
+  --garden-line: #9ccfbf;
+  --garden-ink: #0f6b52;
+  --garden-note: #456358;
+  --garden-stem: #2f8560;
+
   --radius: 16px;
   --radius-sm: 10px;
 }
@@ -252,11 +263,20 @@ body {
 }
 
 /* ---------- garden ---------- */
+.garden {
+  background: var(--garden-bg);
+  border-color: var(--garden-line);
+  /* A soft lift so it reads as raised off the cream, not just recoloured. */
+  box-shadow: 0 2px 10px rgba(15, 107, 82, 0.08);
+}
+
+.garden .panel-title { color: var(--garden-ink); }
+
 .garden-count {
   font-family: ui-serif, Georgia, serif;
   font-style: italic;
   font-size: 14px;
-  color: var(--accent);
+  color: var(--garden-ink);
 }
 
 .sprouts {
@@ -275,7 +295,7 @@ body {
 .garden-note {
   margin: 0;
   font-size: 13px;
-  color: var(--ink-muted);
+  color: var(--garden-note);
 }
 
 /* ---------- nudge cards ---------- */
