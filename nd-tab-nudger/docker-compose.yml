@@ -7,8 +7,11 @@ services:
       - "6574:6574"  # gRPC — what the Python SDK connects to
       - "6575:6575"  # local web UI, handy for eyeballing collections in the demo
     volumes:
-      - ./local_data:/var/lib/actian-vectorai
+      - vectorai-data:/var/lib/actian-vectorai
     environment:
       # Container refuses to start without this.
       - ACTIAN_VECTORAI_ACCEPT_EULA=YES
     restart: unless-stopped
+
+volumes:
+  vectorai-data:

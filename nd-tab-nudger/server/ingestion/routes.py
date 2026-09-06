@@ -5,6 +5,7 @@ from flask import Blueprint, request, jsonify
 
 from ingestion.embeddings import embed_text
 from ingestion.classifier import classify_title
+from nudging.session_state import record_distraction_visit
 from vectordb.client import upsert_tab
 
 log = logging.getLogger(__name__)
@@ -38,6 +39,10 @@ def ingest():
     try:
         vector = embed_text(title)
         label = classify_title(vector)
+
+        if label == "distraction":
+            record_distraction_visit(domain)
+
         upsert_tab(
             point_id=tab_id,
             vector=vector,

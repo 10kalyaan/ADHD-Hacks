@@ -1,7 +1,8 @@
 flask==3.0.3
 flask-cors==4.0.1
 openai==1.51.0
-anthropic==0.39.0
+google-genai==2.22.0
 python-dotenv==1.0.1
+pytest==8.3.3
 # Pinned: the client.py call sites are verified against exactly this version.
 actian-vectorai-client==1.0.2
