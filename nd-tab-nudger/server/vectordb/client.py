@@ -71,6 +71,13 @@ def query_tabs(vector, top_k, filter=None):
     return client.points.search(TABS_COLLECTION, vector, limit=top_k, filter=filter)
 
 
+def get_tab(point_id):
+    """One tracked tab's payload, or None if it is not stored."""
+    client = get_client()
+    found = client.points.get(TABS_COLLECTION, ids=[point_id])
+    return found[0].payload if found else None
+
+
 def delete_tabs(point_ids):
     """Drop tracked tabs the browser has told us are closed.
 

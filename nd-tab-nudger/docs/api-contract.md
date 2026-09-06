@@ -19,6 +19,25 @@ Response: `200 { "status": "ok", "label": "chill" }`
 
 `label` is one of `work`, `sidequest` or `chill`.
 
+## `POST /tabs/visit`
+
+Sent by `background.js` on `chrome.tabs.onActivated`. Records that the user
+actually switched to a tab; if that tab is labelled `chill` it counts toward
+the pressure signal that decides how many nudge cards to show.
+
+Deriving this at ingest time measured the wrong thing — how many chill tabs
+happened to be open, not whether the user was bouncing between them — and
+because MV3 kills the service worker after ~30s idle, the startup backfill
+re-ingested every tab repeatedly and pinned pressure permanently high.
+
+Request:
+```json
+{ "tabId": 123 }
+```
+
+Response: `200 { "status": "ok", "counted": true }` — `counted` is false for
+non-chill tabs and for ids the server has never seen.
+
 ## `POST /tabs/sync`
 
 Sent by `background.js` on startup and whenever a tab closes. Deletes every

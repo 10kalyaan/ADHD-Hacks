@@ -19,6 +19,19 @@ async function getNudge() {
   return res.json();
 }
 
+// Tells the server the user actually switched to this tab, which is what
+// feeds the chill-pressure signal. Ingest-time was the wrong moment: it
+// measured how many chill tabs were open, not whether they were bouncing.
+async function visitTab(tabId) {
+  const res = await fetch(`${API_BASE}/tabs/visit`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ tabId }),
+  });
+  if (!res.ok) throw new Error(`/tabs/visit failed: ${res.status}`);
+  return res.json();
+}
+
 // Tells the server which tabs are still open so it can drop the rest.
 // Closed tabs are the oldest, so leaving them in would let them dominate the
 // staleness ranking and get nudged even though they no longer exist.
@@ -35,5 +48,5 @@ async function syncTabs(openTabIds) {
 // Exposed as globals for MV3 non-module scripts (background.js, content
 // scripts). newtab.js can also just include this file via <script> tag.
 if (typeof module !== "undefined") {
-  module.exports = { ingestTab, getNudge, syncTabs, API_BASE };
+  module.exports = { ingestTab, getNudge, syncTabs, visitTab, API_BASE };
 }

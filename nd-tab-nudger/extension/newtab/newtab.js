@@ -227,7 +227,7 @@ function renderCards(cards) {
   });
 }
 
-function renderTabList(tabs) {
+async function renderTabList(tabs) {
   const list = $("tab-list");
   list.replaceChildren();
 
@@ -236,12 +236,30 @@ function renderTabList(tabs) {
     return;
   }
 
+  // Tabs the user has actually switched to this session. Anything tracked but
+  // never activated was opened in the background and never read.
+  let seen = [];
+  try {
+    ({ seenTabs: seen = [] } = await chrome.storage.session.get("seenTabs"));
+  } catch {
+    seen = [];
+  }
+
   // Cap the list: a tab hoarder can have dozens open, and an endless column
   // buries everything below it.
   const SHOWN = 8;
   tabs.slice(0, SHOWN).forEach((tab) => {
     const li = el("li");
-    li.append(el("span", "host", tab.domain), el("span", "title", tab.title));
+
+    const tag = el("span", "tag", tab.label || "tab");
+    tag.dataset.label = tab.label || "";
+
+    li.append(tag, el("span", "title", tab.title), el("span", "host", tab.domain));
+
+    if (!seen.includes(tab.tabId)) {
+      li.append(el("span", "flag", "not opened"));
+    }
+
     li.addEventListener("click", () => jumpToTab(tab.tabId));
     list.append(li);
   });
@@ -303,7 +321,7 @@ async function loadNudge() {
     const allTabs = [...cards, ...openTabs];
 
     renderCards(cards);
-    renderTabList(openTabs);
+    await renderTabList(openTabs);
     renderSplit(allTabs);
     renderDomains(allTabs);
     await renderStats(allTabs);

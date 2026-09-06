@@ -7,7 +7,7 @@ from config import MAX_TRACKED_TABS, LABEL_CHILL
 from ingestion.embeddings import embed_text
 from ingestion.classifier import classify_title
 from nudging.session_state import record_distraction_visit
-from vectordb.client import upsert_tab, delete_tabs, scroll_all_tabs
+from vectordb.client import upsert_tab, delete_tabs, scroll_all_tabs, get_tab
 
 log = logging.getLogger(__name__)
 
@@ -41,9 +41,6 @@ def ingest():
         vector = embed_text(title)
         label = classify_title(vector)
 
-        if label == LABEL_CHILL:
-            record_distraction_visit(domain)
-
         upsert_tab(
             point_id=tab_id,
             vector=vector,
@@ -63,6 +60,41 @@ def ingest():
         return jsonify({"status": "error", "error": "ingest failed"}), 502
 
     return jsonify({"status": "ok", "label": label})
+
+
+@ingestion_bp.route("/tabs/visit", methods=["POST"])
+def visit_tab():
+    """Record that the user actually switched to a tab.
+
+    Chill pressure means "how much are they bouncing onto low-value tabs right
+    now". Deriving it at ingest time measured the wrong thing entirely -- how
+    many chill tabs happened to be open -- and the MV3 backfill re-ingesting
+    every tab on each service-worker restart pinned it permanently high, so
+    the nudge was stuck at a single card. Only a real activation counts.
+    """
+    body = request.get_json(silent=True)
+    if not isinstance(body, dict) or body.get("tabId") is None:
+        return jsonify({"status": "error", "error": "tabId is required"}), 400
+
+    try:
+        tab_id = int(body["tabId"])
+    except (TypeError, ValueError):
+        return jsonify({"status": "error", "error": "tabId must be an integer"}), 400
+
+    try:
+        payload = get_tab(tab_id)
+    except Exception:
+        log.exception("visit lookup failed for tabId=%s", tab_id)
+        return jsonify({"status": "error", "error": "visit failed"}), 502
+
+    if not payload:
+        return jsonify({"status": "ok", "counted": False})
+
+    counted = payload.get("label") == LABEL_CHILL
+    if counted:
+        record_distraction_visit(payload.get("domain") or "")
+
+    return jsonify({"status": "ok", "counted": counted})
 
 
 @ingestion_bp.route("/tabs/sync", methods=["POST"])

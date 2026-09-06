@@ -39,6 +39,26 @@ async function trackTab(tab) {
   }
 }
 
+// Which tabs the user has actually looked at this session. A tab opened in
+// the background (ctrl-click, session restore) and never activated is the
+// "opened it, never read it" pile the New Tab page calls out.
+async function markSeen(tabId) {
+  try {
+    const { seenTabs = [] } = await chrome.storage.session.get("seenTabs");
+    if (!seenTabs.includes(tabId)) {
+      await chrome.storage.session.set({ seenTabs: [...seenTabs, tabId] });
+    }
+  } catch (err) {
+    console.warn("[nd-tab-nudger] markSeen failed", err);
+  }
+}
+
+chrome.tabs.onActivated.addListener(({ tabId }) => {
+  markSeen(tabId);
+  // The server decides whether this one counts as chill.
+  visitTab(tabId).catch(() => {});
+});
+
 chrome.tabs.onCreated.addListener((tab) => trackTab(tab));
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {

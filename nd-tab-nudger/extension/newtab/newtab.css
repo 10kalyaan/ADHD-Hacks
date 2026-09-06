@@ -354,13 +354,49 @@ body {
 
 .tab-list li {
   display: flex;
-  gap: 8px;
+  align-items: center;
+  gap: 10px;
   min-width: 0;
   padding: 10px 0;
   border-bottom: 1px solid var(--line);
   font-size: 14px;
   color: var(--ink-soft);
   cursor: pointer;
+}
+
+/* Category chip, same colour language as the nudge cards. */
+.tab-list .tag {
+  flex: none;
+  min-width: 68px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(180, 85, 47, 0.12);
+  color: var(--work);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.tab-list .tag[data-label="sidequest"] {
+  background: rgba(125, 80, 136, 0.12);
+  color: var(--sidequest);
+}
+
+.tab-list .tag[data-label="chill"] {
+  background: rgba(42, 138, 95, 0.12);
+  color: var(--chill);
+}
+
+/* Opened in the background and never actually looked at. */
+.tab-list .flag {
+  flex: none;
+  margin-left: auto;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px dashed var(--line);
+  color: var(--ink-muted);
+  font-size: 11px;
+  white-space: nowrap;
 }
 
 .tab-list li:last-child { border-bottom: 0; }
@@ -372,7 +408,11 @@ body {
 }
 .tab-list li:hover .title { color: var(--ink); }
 
-.tab-list .host { color: var(--ink-muted); flex: none; }
+.tab-list .host {
+  flex: none;
+  color: var(--ink-muted);
+  font-size: 12px;
+}
 
 .tab-list .title {
   min-width: 0;
