@@ -262,13 +262,15 @@ body {
 .sprouts {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  min-height: 44px;
+  gap: 11px;
+  min-height: 54px;
   align-items: flex-end;
-  margin: 16px 0 12px;
+  margin: 18px 0 14px;
 }
 
-.sprouts svg { width: 22px; height: 34px; }
+/* ~20% taller than the first pass, so the bed reads as the panel's subject
+   rather than a footnote under the heading. */
+.sprouts svg { width: 26px; height: 42px; }
 
 .garden-note {
   margin: 0;

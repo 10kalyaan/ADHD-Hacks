@@ -9,6 +9,9 @@ const LABEL_COLORS = {
   chill: "#2a8a5f",
 };
 const LABEL_ORDER = ["work", "sidequest", "chill"];
+// Display order for the nudge cards only. Kept out of the server so /nudge
+// stays ranked by score -- the overlay still points at the top-ranked tab.
+const CARD_ORDER = ["sidequest", "work", "chill"];
 const SURFACE = "#fdf9f6";
 
 const $ = (id) => document.getElementById(id);
@@ -178,14 +181,25 @@ function renderDomains(allTabs) {
 /* ---------------- garden ---------------- */
 
 function sprout(i) {
-  const s = svgEl("svg", { viewBox: "0 0 22 34" });
+  const s = svgEl("svg", { viewBox: "0 0 26 42" });
   const hue = [LABEL_COLORS.work, LABEL_COLORS.sidequest, LABEL_COLORS.chill][i % 3];
+  // Alternate the leaf side so a row of these reads as a planted bed rather
+  // than a barcode.
+  const left = i % 2 === 0;
+
   s.append(
-    svgEl("line", {
-      x1: 11, y1: 34, x2: 11, y2: 14,
-      stroke: "#c9a898", "stroke-width": 2, "stroke-linecap": "round",
+    svgEl("path", {
+      d: "M13 42 C13 34 13 30 13 22",
+      stroke: "#3f9e6d", "stroke-width": 2.5, "stroke-linecap": "round", fill: "none",
     }),
-    svgEl("ellipse", { cx: 11, cy: 9, rx: 5, ry: 8, fill: hue, opacity: 0.85 })
+    svgEl("path", {
+      d: left ? "M13 31 C7 31 4 28 4 24 C9 24 12 26 13 31 Z"
+              : "M13 31 C19 31 22 28 22 24 C17 24 14 26 13 31 Z",
+      fill: "#3f9e6d",
+    }),
+    svgEl("ellipse", { cx: 13, cy: 13, rx: 6.5, ry: 10, fill: hue }),
+    // A single highlight lifts the bud off the flat fill.
+    svgEl("ellipse", { cx: 10.8, cy: 9.5, rx: 1.8, ry: 3.2, fill: "#fff", opacity: 0.35 })
   );
   return s;
 }
@@ -214,7 +228,11 @@ function renderCards(cards) {
     return;
   }
 
-  cards.forEach((card) => {
+  const ordered = [...cards].sort(
+    (a, b) => CARD_ORDER.indexOf(a.label) - CARD_ORDER.indexOf(b.label)
+  );
+
+  ordered.forEach((card) => {
     const article = el("article", "card");
     const pill = el("span", "card-label", card.label || "tab");
     pill.dataset.label = card.label || "";
