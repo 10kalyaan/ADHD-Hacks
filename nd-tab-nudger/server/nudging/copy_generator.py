@@ -64,15 +64,19 @@ encouragement:
   real and can be named lightly, without turning it into guilt.
 
 You'll also get a "pressure" field: "high" means the person has bounced
-between distraction sites several times recently, so be extra concrete and
+between chill sites several times recently, so be extra concrete and
 low-effort in the single line you write — the smallest possible next action,
 not a bigger ask. "normal" means no adjustment needed.
+
+Each tab carries a label: "work" (something they are actually trying to get
+done), "sidequest" (reference or reading they opened for a reason) or "chill"
+(somewhere they went to decompress). Never treat "chill" as a failing.
 
 Given a list of tabs (title + domain + label) and the pressure level, return
 - "card_lines": one line per input tab, same order, each naming one tiny next
   action for that tab
 - "overlay_line": one line about the single most actionable tab, meant to
-  gently interrupt someone who just landed on a distraction site — should
+  gently interrupt someone who just landed on a chill site — should
   name that tab specifically, not speak in the abstract
 """
 

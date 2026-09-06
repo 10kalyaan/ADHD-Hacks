@@ -66,7 +66,7 @@ def main():
     # Two well-separated clusters, each at least CLASSIFY_TOP_K big, so the
     # top-k around either one is genuinely local — with fewer points than k
     # the vote just returns whichever label is globally most common.
-    plan = [("work", 1)] * 5 + [("distraction", 2)] * 5
+    plan = [("work", 1)] * 5 + [("chill", 2)] * 5
     for i, (lab, base) in enumerate(plan):
         pid = str(uuid.uuid5(_NS, f"label-{i}"))
         TEST_LABEL_IDS.append(pid)
@@ -83,8 +83,8 @@ def main():
     got = classify_title(vec(1))
     results.append(check("vector near the 'work' cluster classifies as work", got == "work", f"got '{got}'"))
     got2 = classify_title(vec(2))
-    results.append(check("vector near the 'distraction' cluster classifies as distraction",
-                         got2 == "distraction", f"got '{got2}'"))
+    results.append(check("vector near the 'chill' cluster classifies as chill",
+                         got2 == "chill", f"got '{got2}'"))
 
     print("5. tab storage")
     for tid in TEST_TAB_IDS:

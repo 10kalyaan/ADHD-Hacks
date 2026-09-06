@@ -13,12 +13,24 @@ VECTORAI_URL = os.environ.get("VECTORAI_URL", "localhost:6574")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 
+# The three buckets every tab lands in. Deliberately non-judgemental names --
+# "chill" rather than "distraction" -- since the whole point is to nudge
+# without shaming. These strings are the contract: they are stored in the DB
+# payload, returned by /ingest and /nudge, and styled by the extension.
+LABEL_WORK = "work"
+LABEL_SIDEQUEST = "sidequest"
+LABEL_CHILL = "chill"
+LABELS = (LABEL_WORK, LABEL_SIDEQUEST, LABEL_CHILL)
+
 TABS_COLLECTION = "tabs"
 LABELS_COLLECTION = "labels"
 EMBEDDING_MODEL = "text-embedding-3-small"
 EMBEDDING_DIM = 1536
 
 CLASSIFY_TOP_K = 5
+# How many tabs the ranker will consider for cards. This is NOT how many tabs
+# get read from the DB -- that is MAX_TRACKED_TABS. Conflating the two capped
+# the New Tab page's "tabs open" count at 20.
 NUDGE_CANDIDATE_LIMIT = 20
 NUDGE_CARD_COUNT = 2
 

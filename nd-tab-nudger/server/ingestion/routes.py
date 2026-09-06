@@ -3,7 +3,7 @@ import time
 
 from flask import Blueprint, request, jsonify
 
-from config import MAX_TRACKED_TABS
+from config import MAX_TRACKED_TABS, LABEL_CHILL
 from ingestion.embeddings import embed_text
 from ingestion.classifier import classify_title
 from nudging.session_state import record_distraction_visit
@@ -41,7 +41,7 @@ def ingest():
         vector = embed_text(title)
         label = classify_title(vector)
 
-        if label == "distraction":
+        if label == LABEL_CHILL:
             record_distraction_visit(domain)
 
         upsert_tab(

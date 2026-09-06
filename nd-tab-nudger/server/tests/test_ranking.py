@@ -47,12 +47,12 @@ def test_card_count_stays_normal_below_threshold(monkeypatch):
     assert ranking._card_count_for_pressure() == ranking.NUDGE_CARD_COUNT
 
 
-def test_rank_nudge_candidates_excludes_distraction_tabs(monkeypatch):
+def test_rank_nudge_candidates_excludes_chill_tabs(monkeypatch):
     all_tabs = [
         {"tabId": 1, "title": "Q3 doc", "domain": "docs.google.com",
          "openedAt": 100, "label": "work"},
         {"tabId": 2, "title": "Reddit", "domain": "reddit.com",
-         "openedAt": 200, "label": "distraction"},
+         "openedAt": 200, "label": "chill"},
     ]
     monkeypatch.setattr(
         ranking, "scroll_all_tabs",
@@ -68,3 +68,35 @@ def test_rank_nudge_candidates_excludes_distraction_tabs(monkeypatch):
 
     assert [c["tabId"] for c in cards] == [1]
     assert len(tabs) == 2
+
+
+def test_spread_labels_prefers_a_different_category_per_card():
+    ranked = [
+        {"tabId": 1, "label": "work"},
+        {"tabId": 2, "label": "work"},
+        {"tabId": 3, "label": "sidequest"},
+    ]
+
+    # Strict rank order would return two work tabs and never surface the
+    # sidequest, which is the whole point of showing a second card.
+    picked = ranking._spread_labels(ranked, 2)
+
+    assert [p["tabId"] for p in picked] == [1, 3]
+
+
+def test_spread_labels_falls_back_to_rank_order_when_labels_run_out():
+    ranked = [
+        {"tabId": 1, "label": "work"},
+        {"tabId": 2, "label": "work"},
+        {"tabId": 3, "label": "work"},
+    ]
+
+    picked = ranking._spread_labels(ranked, 2)
+
+    # Only one category available -- still return two cards, in fused order.
+    assert [p["tabId"] for p in picked] == [1, 2]
+
+
+def test_spread_labels_handles_fewer_candidates_than_requested():
+    ranked = [{"tabId": 1, "label": "work"}]
+    assert ranking._spread_labels(ranked, 2) == ranked

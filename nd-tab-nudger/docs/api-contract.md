@@ -15,7 +15,9 @@ Request:
 }
 ```
 
-Response: `200 { "status": "ok", "label": "distraction" }`
+Response: `200 { "status": "ok", "label": "chill" }`
+
+`label` is one of `work`, `sidequest` or `chill`.
 
 ## `POST /tabs/sync`
 
@@ -51,7 +53,7 @@ Response:
       "title": "React hooks guide",
       "domain": "reactjs.org",
       "line": "Still open from three hours ago. It's not going anywhere on its own.",
-      "label": "reference"
+      "label": "sidequest"
     }
   ],
   "overlay_line": "Reddit again? Your Q3 doc says hi.",

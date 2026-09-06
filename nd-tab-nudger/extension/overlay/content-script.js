@@ -1,4 +1,4 @@
-// Injected only on the distraction domains listed in manifest.json's
+// Injected only on the chill domains listed in manifest.json's
 // content_scripts.matches. Renders a dismissible corner card inside a
 // shadow DOM so the host page's CSS can't clobber it (or vice versa).
 

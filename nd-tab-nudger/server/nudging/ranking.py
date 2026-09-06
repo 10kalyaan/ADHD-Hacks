@@ -17,6 +17,8 @@ from config import (
     NUDGE_CARD_COUNT,
     HIGH_PRESSURE_VISIT_THRESHOLD,
     ACTIONABLE_TASK_ANCHOR,
+    MAX_TRACKED_TABS,
+    LABEL_CHILL,
 )
 from ingestion.embeddings import embed_text
 from nudging.session_state import get_distraction_pressure
@@ -30,13 +32,13 @@ def _staleness_ranking(candidates):
     return sorted(candidates, key=lambda c: c["openedAt"])
 
 
-def _semantic_ranking(candidates):
+def _semantic_ranking(candidates, search_k):
     anchor_vector = embed_text(ACTIONABLE_TASK_ANCHOR)
     # Search the whole tracked set, not just len(candidates). The collection
-    # also holds distraction tabs, and asking for only len(candidates) lets
+    # also holds chill tabs, and asking for only len(candidates) lets
     # them take the top slots — candidates then fall out of the result set
     # entirely and RRF silently degrades into staleness-only ranking.
-    results = query_tabs(anchor_vector, top_k=NUDGE_CANDIDATE_LIMIT)
+    results = query_tabs(anchor_vector, top_k=search_k)
     # results are ordered nearest-first already; map back to our candidates by tabId
     order = [r.payload["tabId"] for r in results]
     by_id = {c["tabId"]: c for c in candidates}
@@ -69,18 +71,51 @@ def _card_count_for_pressure():
     return NUDGE_CARD_COUNT
 
 
+def _spread_labels(ranked, count):
+    """Pick `count` cards, preferring a different label for each.
+
+    Two work tabs say less than one work tab and one sidequest -- picking
+    strictly by score tends to return a run of whichever label happens to
+    dominate the open set, so a sidequest never surfaces. Falls back to plain
+    rank order once the labels run out.
+    """
+    picked, seen = [], set()
+    for item in ranked:
+        if len(picked) == count:
+            break
+        label = item.get("label")
+        if label not in seen:
+            picked.append(item)
+            seen.add(label)
+
+    if len(picked) < count:
+        chosen = {id(p) for p in picked}
+        picked += [i for i in ranked if id(i) not in chosen][: count - len(picked)]
+        # Keep the fused ordering rather than the order they were topped up in.
+        picked.sort(key=ranked.index)
+
+    return picked
+
+
 def rank_nudge_candidates():
     """
     Returns (cards_candidates, all_open_tabs) where cards_candidates is the
-    fused top-N non-distraction tabs, and all_open_tabs is every tracked tab
+    fused top-N non-chill tabs, and all_open_tabs is every tracked tab
     (for the New Tab page's flat list).
     """
-    points = scroll_all_tabs(limit=NUDGE_CANDIDATE_LIMIT)
+    # Read the whole tracked set. Scrolling only NUDGE_CANDIDATE_LIMIT here
+    # was pinning the New Tab page's "tabs open" tile at 20 no matter how many
+    # tabs were actually open -- that limit bounds the ranking pool, not the DB read.
+    points = scroll_all_tabs(limit=MAX_TRACKED_TABS)
     all_tabs = [p.payload for p in points]
 
-    actionable = [t for t in all_tabs if t.get("label") != "distraction"]
+    actionable = [t for t in all_tabs if t.get("label") != LABEL_CHILL]
     if not actionable:
         return [], all_tabs
 
-    fused = _rrf_fuse(_staleness_ranking(actionable), _semantic_ranking(actionable))
-    return fused[: _card_count_for_pressure()], all_tabs
+    # Rank the stalest slice rather than everything: with hundreds of tabs the
+    # fusion is dominated by noise, and the freshest ones need no nudge.
+    pool = _staleness_ranking(actionable)[:NUDGE_CANDIDATE_LIMIT]
+
+    fused = _rrf_fuse(_staleness_ranking(pool), _semantic_ranking(pool, len(all_tabs)))
+    return _spread_labels(fused, _card_count_for_pressure()), all_tabs

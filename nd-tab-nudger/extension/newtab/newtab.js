@@ -5,10 +5,10 @@ const USE_MOCK = false;
 // Matches the validated palette in newtab.css. Fixed order, never cycled.
 const LABEL_COLORS = {
   work: "#b4552f",
-  reference: "#7d5088",
-  distraction: "#2a8a5f",
+  sidequest: "#7d5088",
+  chill: "#2a8a5f",
 };
-const LABEL_ORDER = ["work", "reference", "distraction"];
+const LABEL_ORDER = ["work", "sidequest", "chill"];
 const SURFACE = "#fdf9f6";
 
 const $ = (id) => document.getElementById(id);
@@ -91,7 +91,7 @@ function renderSplit(allTabs) {
 
   const counts = {};
   allTabs.forEach((t) => {
-    const label = LABEL_ORDER.includes(t.label) ? t.label : "reference";
+    const label = LABEL_ORDER.includes(t.label) ? t.label : "sidequest";
     counts[label] = (counts[label] || 0) + 1;
   });
 
@@ -168,7 +168,7 @@ function renderDomains(allTabs) {
     const fill = el("div", "fill");
     // Floor the width so a single-tab domain still shows a visible mark.
     fill.style.width = `${Math.max((info.count / max) * 100, 4)}%`;
-    fill.style.background = LABEL_COLORS[info.label] || LABEL_COLORS.reference;
+    fill.style.background = LABEL_COLORS[info.label] || LABEL_COLORS.sidequest;
     track.append(fill);
     li.append(el("span", "host", domain), track, el("span", "count", info.count));
     list.append(li);
@@ -179,7 +179,7 @@ function renderDomains(allTabs) {
 
 function sprout(i) {
   const s = svgEl("svg", { viewBox: "0 0 22 34" });
-  const hue = [LABEL_COLORS.work, LABEL_COLORS.reference, LABEL_COLORS.distraction][i % 3];
+  const hue = [LABEL_COLORS.work, LABEL_COLORS.sidequest, LABEL_COLORS.chill][i % 3];
   s.append(
     svgEl("line", {
       x1: 11, y1: 34, x2: 11, y2: 14,

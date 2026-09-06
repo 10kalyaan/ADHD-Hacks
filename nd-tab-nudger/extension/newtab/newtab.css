@@ -11,8 +11,8 @@
   --ink-muted: #9a8878;
 
   --work: #b4552f;
-  --reference: #7d5088;
-  --distraction: #2a8a5f;
+  --sidequest: #7d5088;
+  --chill: #2a8a5f;
   --accent: #c2410c;
 
   --radius: 16px;
@@ -126,14 +126,21 @@ body {
 /* ---------- layout ---------- */
 .grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  /* minmax(0, …) not 1fr: plain 1fr floors the column at its min-content
+     width, so one long tab title pushes the whole grid past the viewport. */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 20px;
   align-items: start;
 }
 
-.side { display: grid; gap: 20px; }
+.side {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
 
 .panel {
+  min-width: 0;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -214,7 +221,7 @@ body {
 
 .domains li {
   display: grid;
-  grid-template-columns: 108px 1fr auto;
+  grid-template-columns: 108px minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
   font-size: 13px;
@@ -289,18 +296,25 @@ body {
   font-weight: 600;
 }
 
-.card-label[data-label="reference"] {
+.card-label[data-label="sidequest"] {
   background: rgba(125, 80, 136, 0.14);
-  color: var(--reference);
+  color: var(--sidequest);
 }
 
-.card-label[data-label="distraction"] {
+.card-label[data-label="chill"] {
   background: rgba(42, 138, 95, 0.14);
-  color: var(--distraction);
+  color: var(--chill);
 }
 
 .card h3 {
   margin: 14px 0 8px;
+  overflow-wrap: anywhere;
+  /* Real page titles can run to hundreds of characters (shopping pages are
+     the worst) — clamp so one tab cannot swallow the whole column. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
   font-family: ui-serif, Georgia, "Times New Roman", serif;
   font-style: italic;
   font-weight: 500;
@@ -341,6 +355,7 @@ body {
 .tab-list li {
   display: flex;
   gap: 8px;
+  min-width: 0;
   padding: 10px 0;
   border-bottom: 1px solid var(--line);
   font-size: 14px;
@@ -360,6 +375,7 @@ body {
 .tab-list .host { color: var(--ink-muted); flex: none; }
 
 .tab-list .title {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

@@ -38,20 +38,20 @@ SEED_EXAMPLES = [
     ("work", "Quarterly budget spreadsheet - Google Sheets"),
     ("work", "Team standup notes - Notion"),
     ("work", "Client proposal draft - Google Docs"),
-    # reference
-    ("reference", "React hooks guide - reactjs.org"),
-    ("reference", "How to center a div - Stack Overflow"),
-    ("reference", "Python asyncio documentation"),
-    ("reference", "MDN: Array.prototype.map()"),
-    ("reference", "Postgres indexing best practices - blog post"),
-    ("reference", "Figma API reference"),
-    # distraction
-    ("distraction", "Reddit - Dive into anything"),
-    ("distraction", "Home / X"),
-    ("distraction", "Instagram"),
-    ("distraction", "YouTube - Home"),
-    ("distraction", "reddit.com/r/all"),
-    ("distraction", "Trending videos - YouTube"),
+    # sidequest
+    ("sidequest", "React hooks guide - reactjs.org"),
+    ("sidequest", "How to center a div - Stack Overflow"),
+    ("sidequest", "Python asyncio documentation"),
+    ("sidequest", "MDN: Array.prototype.map()"),
+    ("sidequest", "Postgres indexing best practices - blog post"),
+    ("sidequest", "Figma API reference"),
+    # chill
+    ("chill", "Reddit - Dive into anything"),
+    ("chill", "Home / X"),
+    ("chill", "Instagram"),
+    ("chill", "YouTube - Home"),
+    ("chill", "reddit.com/r/all"),
+    ("chill", "Trending videos - YouTube"),
 ]
 
 

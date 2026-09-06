@@ -1,19 +1,19 @@
 from collections import Counter
 
-from config import CLASSIFY_TOP_K
+from config import CLASSIFY_TOP_K, LABEL_SIDEQUEST
 from vectordb.client import query_labels
 
 
 def classify_title(vector):
     """
     KNN majority vote against the `labels` seed collection.
-    Each neighbor's payload carries a `label` field (work/reference/distraction);
+    Each neighbor's payload carries a `label` field (work/sidequest/chill);
     the most common label among the top-k nearest wins ties broken by nearest
     neighbor.
     """
     neighbors = query_labels(vector, top_k=CLASSIFY_TOP_K)
     if not neighbors:
-        return "reference"  # safe default, never crash ingestion over this
+        return LABEL_SIDEQUEST  # safe default, never crash ingestion over this
 
     labels = [n.payload["label"] for n in neighbors]
     counts = Counter(labels)
