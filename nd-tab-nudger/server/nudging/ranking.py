@@ -32,7 +32,11 @@ def _staleness_ranking(candidates):
 
 def _semantic_ranking(candidates):
     anchor_vector = embed_text(ACTIONABLE_TASK_ANCHOR)
-    results = query_tabs(anchor_vector, top_k=len(candidates))
+    # Search the whole tracked set, not just len(candidates). The collection
+    # also holds distraction tabs, and asking for only len(candidates) lets
+    # them take the top slots — candidates then fall out of the result set
+    # entirely and RRF silently degrades into staleness-only ranking.
+    results = query_tabs(anchor_vector, top_k=NUDGE_CANDIDATE_LIMIT)
     # results are ordered nearest-first already; map back to our candidates by tabId
     order = [r.payload["tabId"] for r in results]
     by_id = {c["tabId"]: c for c in candidates}

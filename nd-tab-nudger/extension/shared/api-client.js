@@ -19,8 +19,21 @@ async function getNudge() {
   return res.json();
 }
 
+// Tells the server which tabs are still open so it can drop the rest.
+// Closed tabs are the oldest, so leaving them in would let them dominate the
+// staleness ranking and get nudged even though they no longer exist.
+async function syncTabs(openTabIds) {
+  const res = await fetch(`${API_BASE}/tabs/sync`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ openTabIds }),
+  });
+  if (!res.ok) throw new Error(`/tabs/sync failed: ${res.status}`);
+  return res.json();
+}
+
 // Exposed as globals for MV3 non-module scripts (background.js, content
 // scripts). newtab.js can also just include this file via <script> tag.
 if (typeof module !== "undefined") {
-  module.exports = { ingestTab, getNudge, API_BASE };
+  module.exports = { ingestTab, getNudge, syncTabs, API_BASE };
 }

@@ -63,6 +63,16 @@ The SDK talks gRPC, so `VECTORAI_URL` is a bare `host:port` — a `http://`
 scheme is rejected. Browse the collections at <http://localhost:6575> while
 demoing.
 
+If nudges go empty or classification starts labelling everything the same,
+check the collection status in that UI. Repeatedly emptying a collection can
+leave its index **Red**, where points still store and fetch by id but vector
+search quietly returns too few results or none — and normal startup won't
+repair it. Rebuild with:
+
+```bash
+python -m ingestion.seed_labels --reset   # drops both collections, re-seeds labels
+```
+
 Then load the extension:
 
 1. Go to `chrome://extensions`, enable Developer Mode.
@@ -70,9 +80,10 @@ Then load the extension:
 3. Open a new tab, browse normally, visit Reddit/YouTube/etc. to see the
    overlay.
 
-`extension/newtab/newtab.js` has a `USE_MOCK` flag — flip it to `false`
-once the server above is running; it defaults to mock data so the UI works
-standalone.
+`extension/newtab/newtab.js` has a `USE_MOCK` flag, off by default so the New
+Tab page reads from the live server. Set it to `true` to render from
+`extension/mocks/nudge-response.json` instead and work on the UI with no
+backend running.
 
 ## Repo structure
 

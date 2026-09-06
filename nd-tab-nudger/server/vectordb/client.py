@@ -71,6 +71,21 @@ def query_tabs(vector, top_k, filter=None):
     return client.points.search(TABS_COLLECTION, vector, limit=top_k, filter=filter)
 
 
+def delete_tabs(point_ids):
+    """Drop tracked tabs the browser has told us are closed.
+
+    Without this the collection grows forever, and since closed tabs are the
+    *oldest* they dominate the staleness ranking — the nudge would recommend
+    tabs that no longer exist.
+    """
+    ids = list(point_ids)
+    if not ids:
+        return 0
+    client = get_client()
+    client.points.delete(TABS_COLLECTION, ids=ids, strict=False)
+    return len(ids)
+
+
 def scroll_all_tabs(limit=100):
     """All currently-tracked tab points (builds ranking + the open_tabs list).
 
@@ -80,3 +95,18 @@ def scroll_all_tabs(limit=100):
     client = get_client()
     points, _next_offset = client.points.scroll(TABS_COLLECTION, limit=limit)
     return points
+
+
+def recreate_collections():
+    """Drop and rebuild both collections from scratch.
+
+    Repeatedly emptying a collection can leave its HNSW index in a Red
+    state where points still store and fetch by id but vector search
+    silently returns fewer results — or none. `ensure_collections` uses
+    get_or_create and will not repair that, so this is the escape hatch:
+    `python -m ingestion.seed_labels --reset`. Destroys all tracked tabs.
+    """
+    client = get_client()
+    params = VectorParams(size=EMBEDDING_DIM, distance=Distance.Cosine)
+    for name in (TABS_COLLECTION, LABELS_COLLECTION):
+        client.collections.recreate(name, vectors_config=params)

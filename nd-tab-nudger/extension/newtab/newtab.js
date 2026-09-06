@@ -1,6 +1,6 @@
-// Flip to false once the Flask server is up (Workstream C checkpoint).
-// Keeps Workstream A unblocked against extension/mocks/nudge-response.json.
-const USE_MOCK = true;
+// Set to true to render from extension/mocks/nudge-response.json instead of
+// the live server — useful for working on the UI with no backend running.
+const USE_MOCK = false;
 
 const cardsEl = document.getElementById("cards");
 const tabListEl = document.getElementById("tab-list");
@@ -36,7 +36,14 @@ function renderTabList(tabs) {
 }
 
 function jumpToTab(tabId) {
-  chrome.tabs.update(tabId, { active: true });
+  // The tab can be gone if it closed between /nudge and the click. Reload so
+  // the page reflects reality instead of appearing inert.
+  chrome.tabs.update(tabId, { active: true }, () => {
+    if (chrome.runtime.lastError) {
+      console.warn("[nd-tab-nudger]", chrome.runtime.lastError.message);
+      loadNudge();
+    }
+  });
 }
 
 async function loadNudge() {

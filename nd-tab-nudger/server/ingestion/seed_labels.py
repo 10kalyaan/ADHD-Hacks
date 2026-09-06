@@ -4,12 +4,22 @@ classification has something to compare against. Run once after the DB
 is up:
 
     python -m ingestion.seed_labels
+
+Pass --reset to drop and rebuild both collections first. Do that if search
+starts returning too few results or none at all: repeatedly emptying a
+collection can leave its index in a Red state that ensure_collections won't
+repair. --reset also wipes every tracked tab.
 """
 
+import sys
 import uuid
 
 from ingestion.embeddings import embed_texts
-from vectordb.client import ensure_collections, upsert_label_example
+from vectordb.client import (
+    ensure_collections,
+    recreate_collections,
+    upsert_label_example,
+)
 
 # The DB only accepts a non-negative int or a UUID as a point id, so seed ids
 # are derived as uuid5 — deterministic, so re-running this script overwrites
@@ -45,8 +55,12 @@ SEED_EXAMPLES = [
 ]
 
 
-def run():
-    ensure_collections()
+def run(reset=False):
+    if reset:
+        print("Recreating collections (all tracked tabs will be lost)...")
+        recreate_collections()
+    else:
+        ensure_collections()
 
     # One batched embedding call for all examples, not one per example.
     vectors = embed_texts([text for _label, text in SEED_EXAMPLES])
@@ -61,4 +75,4 @@ def run():
 
 
 if __name__ == "__main__":
-    run()
+    run(reset="--reset" in sys.argv)

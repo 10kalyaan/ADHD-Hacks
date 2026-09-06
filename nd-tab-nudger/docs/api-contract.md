@@ -17,6 +17,22 @@ Request:
 
 Response: `200 { "status": "ok", "label": "distraction" }`
 
+## `POST /tabs/sync`
+
+Sent by `background.js` on startup and whenever a tab closes. Deletes every
+stored tab whose id isn't in the list, so closed tabs stop being ranked —
+they're the oldest, so otherwise they dominate the staleness ranking and get
+nudged even though they no longer exist. Reconciling the whole set (rather
+than deleting one id at a time) also clears rows orphaned by a browser
+restart, where `onRemoved` never fires.
+
+Request:
+```json
+{ "openTabIds": [123, 456, 789] }
+```
+
+Response: `200 { "status": "ok", "removed": 2 }`
+
 ## `GET /nudge`
 
 Response:

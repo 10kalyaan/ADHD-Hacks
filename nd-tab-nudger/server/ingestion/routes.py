@@ -3,10 +3,11 @@ import time
 
 from flask import Blueprint, request, jsonify
 
+from config import MAX_TRACKED_TABS
 from ingestion.embeddings import embed_text
 from ingestion.classifier import classify_title
 from nudging.session_state import record_distraction_visit
-from vectordb.client import upsert_tab
+from vectordb.client import upsert_tab, delete_tabs, scroll_all_tabs
 
 log = logging.getLogger(__name__)
 
@@ -62,3 +63,31 @@ def ingest():
         return jsonify({"status": "error", "error": "ingest failed"}), 502
 
     return jsonify({"status": "ok", "label": label})
+
+
+@ingestion_bp.route("/tabs/sync", methods=["POST"])
+def sync_tabs():
+    """Prune tabs the browser no longer has open.
+
+    Reconciles against the full open-tab list rather than deleting one id at
+    a time, so it also cleans up rows orphaned by a browser restart — the
+    service worker never sees onRemoved for those.
+    """
+    body = request.get_json(silent=True)
+    if not isinstance(body, dict) or not isinstance(body.get("openTabIds"), list):
+        return jsonify({"status": "error", "error": "openTabIds (list) is required"}), 400
+
+    try:
+        open_ids = {int(t) for t in body["openTabIds"]}
+    except (TypeError, ValueError):
+        return jsonify({"status": "error", "error": "openTabIds must be integers"}), 400
+
+    try:
+        stored = scroll_all_tabs(limit=MAX_TRACKED_TABS)
+        stale = [p.id for p in stored if p.id not in open_ids]
+        removed = delete_tabs(stale)
+    except Exception:
+        log.exception("tab sync failed")
+        return jsonify({"status": "error", "error": "sync failed"}), 502
+
+    return jsonify({"status": "ok", "removed": removed})

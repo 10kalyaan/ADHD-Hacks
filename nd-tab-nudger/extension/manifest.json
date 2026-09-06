@@ -26,5 +26,17 @@
       "css": ["overlay/overlay.css"],
       "run_at": "document_idle"
     }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["overlay/overlay.css"],
+      "matches": [
+        "*://*.reddit.com/*",
+        "*://*.twitter.com/*",
+        "*://*.x.com/*",
+        "*://*.instagram.com/*",
+        "*://*.youtube.com/*"
+      ]
+    }
   ]
 }

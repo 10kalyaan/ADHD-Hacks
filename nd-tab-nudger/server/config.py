@@ -22,6 +22,10 @@ CLASSIFY_TOP_K = 5
 NUDGE_CANDIDATE_LIMIT = 20
 NUDGE_CARD_COUNT = 2
 
+# Upper bound when reconciling stored tabs against the browser's open set
+# (/tabs/sync). Generous enough to cover even a heavy tab-hoarding session.
+MAX_TRACKED_TABS = 500
+
 # Distraction-domain visits within session_state's rolling window before a
 # nudge switches to showing just one card instead of NUDGE_CARD_COUNT — see
 # nudging/session_state.py and nudging/ranking.py::_card_count_for_pressure.
