@@ -12,8 +12,14 @@ surfaces tabs that are *both* stale and clearly actionable, rather than
 just "oldest" or just "closest match" alone.
 """
 
-from config import NUDGE_CANDIDATE_LIMIT, NUDGE_CARD_COUNT, ACTIONABLE_TASK_ANCHOR
+from config import (
+    NUDGE_CANDIDATE_LIMIT,
+    NUDGE_CARD_COUNT,
+    HIGH_PRESSURE_VISIT_THRESHOLD,
+    ACTIONABLE_TASK_ANCHOR,
+)
 from ingestion.embeddings import embed_text
+from nudging.session_state import get_distraction_pressure
 from vectordb.client import query_tabs, scroll_all_tabs
 
 RRF_K = 60
@@ -46,6 +52,19 @@ def _rrf_fuse(*rankings):
     return [items_by_id[tab_id] for tab_id in ranked_ids]
 
 
+def _card_count_for_pressure():
+    """
+    Choice overload makes ADHD task-initiation harder, not easier — so the
+    more someone is actively bouncing between distraction tabs right now,
+    the fewer options the nudge should show. One clear next tab beats a
+    list when attention is already fragmented.
+    """
+    visit_count, _ = get_distraction_pressure()
+    if visit_count >= HIGH_PRESSURE_VISIT_THRESHOLD:
+        return 1
+    return NUDGE_CARD_COUNT
+
+
 def rank_nudge_candidates():
     """
     Returns (cards_candidates, all_open_tabs) where cards_candidates is the
@@ -60,4 +79,4 @@ def rank_nudge_candidates():
         return [], all_tabs
 
     fused = _rrf_fuse(_staleness_ranking(actionable), _semantic_ranking(actionable))
-    return fused[:NUDGE_CARD_COUNT], all_tabs
+    return fused[: _card_count_for_pressure()], all_tabs

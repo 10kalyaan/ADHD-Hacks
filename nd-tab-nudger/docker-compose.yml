@@ -2,11 +2,15 @@ version: "3.8"
 
 services:
   vectorai-db:
-    image: actian/vectorai-db:latest
+    image: actian/vectorai:latest
     ports:
-      - "8080:8080"
+      - "6573:6573" # REST API
+      - "6574:6574" # gRPC API (what the Python SDK connects to)
+      - "6575:6575" # local UI
+    environment:
+      - ACTIAN_VECTORAI_ACCEPT_EULA=YES
     volumes:
-      - vectorai-data:/data
+      - vectorai-data:/var/lib/actian-vectorai
 
 volumes:
   vectorai-data:

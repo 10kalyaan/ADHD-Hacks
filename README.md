@@ -12,12 +12,22 @@ Challenge.
   similarity search against a hand-labeled seed set.
 - On a new tab, surfaces the 1-2 tabs that most need your attention —
   ranked by a fusion of staleness (how long it's been waiting) and
-  semantic closeness to "an actionable task" — with a witty one-liner
-  per card and a one-click jump back to that tab.
+  semantic closeness to "an actionable task" — with a one-liner per card
+  (naming one tiny next action, not the whole task) and a one-click jump
+  back to that tab.
 - On known distraction domains (Reddit, X, Instagram, YouTube), shows a
   small dismissible corner card nudging you back to what you were doing.
+- If you've bounced between distraction tabs several times in the last
+  15 minutes, nudges adapt: fewer cards (choice overload makes ADHD
+  task-initiation harder, not easier) and a sharper, more concrete line.
+  This is a session-only in-memory counter — see
+  [server/nudging/session_state.py](server/nudging/session_state.py) —
+  not a learned profile; it resets on server restart.
 
-Tone throughout: playful, never shaming.
+Tone throughout: playful, never shaming. Nudge copy is grounded in
+ADHD task-initiation research (implementation intentions / next-smallest-step
+framing, and leaning on curiosity over urgency) — see the design notes at
+the top of [server/nudging/copy_generator.py](server/nudging/copy_generator.py).
 
 ## How VectorAI DB is used
 
@@ -33,11 +43,11 @@ only way to use the required tool from a browser extension.
 
 ## Setup
 
-Prereqs: Docker, Python 3.10+, an Anthropic API key, an OpenAI API key.
+Prereqs: Docker, Python 3.10+, a Gemini API key, an OpenAI API key.
 
 ```bash
-cp .env.example .env   # fill in ANTHROPIC_API_KEY and OPENAI_API_KEY
-docker-compose up -d   # starts VectorAI DB on :8080
+cp .env.example .env   # fill in GEMINI_API_KEY and OPENAI_API_KEY
+docker-compose up -d   # starts VectorAI DB (REST :6573, gRPC :6574, UI :6575)
 
 cd server
 python -m venv venv && source venv/bin/activate
@@ -76,6 +86,8 @@ shapes.
 
 ## Scope
 
-This is a 2-3 hour hackathon build. Not in scope: personalization/learning
-loop, reflection summaries, a settings page, idle-time precision, nudge
+This is a 2-3 hour hackathon build. Not in scope: a persisted/learned user
+profile, reflection summaries, a settings page, idle-time precision, nudge
 pre-generation/caching, dynamic per-domain permission requests, data export.
+(The distraction-pressure signal above is session-only in-memory state, not
+a learning loop — it doesn't persist anything or read the DB.)
