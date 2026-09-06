@@ -1,0 +1,50 @@
+.nudger-card {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 2147483647;
+  width: 280px;
+  background: #1b1e26;
+  color: #f2f2f2;
+  border: 1px solid #2a2e38;
+  border-radius: 12px;
+  padding: 16px;
+  font-family: -apple-system, "Segoe UI", sans-serif;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  animation: nudger-slide-in 0.25s ease-out;
+}
+
+@keyframes nudger-slide-in {
+  from { transform: translateY(12px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.nudger-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #9aa0ab;
+  font-size: 16px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.nudger-line {
+  margin: 8px 0 12px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.nudger-jump {
+  background: #7c9eff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: #0f1115;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  width: 100%;
+}

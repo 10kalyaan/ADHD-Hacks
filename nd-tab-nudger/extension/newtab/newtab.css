@@ -1,0 +1,98 @@
+:root {
+  color-scheme: light dark;
+  --bg: #0f1115;
+  --fg: #f2f2f2;
+  --muted: #9aa0ab;
+  --accent: #7c9eff;
+  --card-bg: #1b1e26;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, "Segoe UI", sans-serif;
+}
+
+.wrap {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+
+h1 {
+  font-size: 28px;
+  margin-bottom: 24px;
+}
+
+h2 {
+  font-size: 16px;
+  color: var(--muted);
+  margin-top: 48px;
+  font-weight: 600;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #2a2e38;
+}
+
+.card-label {
+  font-size: 12px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.card h3 {
+  margin: 8px 0;
+  font-size: 18px;
+}
+
+.card p {
+  color: var(--muted);
+  font-size: 14px;
+  min-height: 36px;
+}
+
+.card button {
+  background: var(--accent);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  color: #0f1115;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tab-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 12px;
+}
+
+.tab-list li {
+  padding: 8px 0;
+  border-bottom: 1px solid #22252e;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.tab-list li:hover {
+  color: var(--fg);
+}
+
+.error {
+  color: #ff8a8a;
+}

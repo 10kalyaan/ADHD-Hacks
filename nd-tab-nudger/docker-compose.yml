@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  vectorai-db:
+    image: actian/vectorai-db:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - vectorai-data:/data
+
+volumes:
+  vectorai-data:
