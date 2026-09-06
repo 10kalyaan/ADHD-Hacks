@@ -9,41 +9,61 @@ function labelEmoji(label) {
   return { work: "🛠️", reference: "📚", distraction: "🌀" }[label] || "•";
 }
 
+// Tab titles come from whatever page the user had open, so they are
+// untrusted input. This page can call chrome.tabs, so building it with
+// innerHTML would let a hostile page title run script with that access.
+function el(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text != null) node.textContent = text;
+  return node;
+}
+
 function renderCards(cards) {
-  cardsEl.innerHTML = "";
+  cardsEl.replaceChildren();
   cards.forEach((card) => {
-    const el = document.createElement("article");
-    el.className = "card";
-    el.innerHTML = `
-      <div class="card-label">${labelEmoji(card.label)} ${card.domain}</div>
-      <h3>${card.title}</h3>
-      <p>${card.line}</p>
-      <button data-tab-id="${card.tabId}">Take me there</button>
-    `;
-    el.querySelector("button").addEventListener("click", () => jumpToTab(card.tabId));
-    cardsEl.appendChild(el);
+    const article = el("article", "card");
+    article.append(
+      el("div", "card-label", `${labelEmoji(card.label)} ${card.domain}`),
+      el("h3", null, card.title),
+      el("p", null, card.line)
+    );
+
+    const button = el("button", null, "Take me there");
+    button.dataset.tabId = card.tabId;
+    button.addEventListener("click", () => jumpToTab(card.tabId));
+    article.append(button);
+
+    cardsEl.append(article);
   });
 }
 
 function renderTabList(tabs) {
-  tabListEl.innerHTML = "";
+  tabListEl.replaceChildren();
   tabs.forEach((tab) => {
     const li = document.createElement("li");
-    li.innerHTML = `<span>${tab.domain}</span> — <em>${tab.title}</em>`;
+    li.append(el("span", null, tab.domain), " — ", el("em", null, tab.title));
     li.addEventListener("click", () => jumpToTab(tab.tabId));
-    tabListEl.appendChild(li);
+    tabListEl.append(li);
   });
 }
 
-function jumpToTab(tabId) {
-  // The tab can be gone if it closed between /nudge and the click. Reload so
-  // the page reflects reality instead of appearing inert.
-  chrome.tabs.update(tabId, { active: true }, () => {
-    if (chrome.runtime.lastError) {
-      console.warn("[nd-tab-nudger]", chrome.runtime.lastError.message);
-      loadNudge();
+async function jumpToTab(tabId) {
+  try {
+    const tab = await chrome.tabs.get(tabId);
+    await chrome.tabs.update(tabId, { active: true });
+    // Activating a tab does not raise the window it lives in. Without this
+    // step a tab in another window goes active out of sight and the click
+    // looks like it did nothing.
+    if (tab.windowId != null) {
+      await chrome.windows.update(tab.windowId, { focused: true });
     }
-  });
+  } catch (err) {
+    // Tab closed between /nudge and the click — refresh so the page stops
+    // offering it rather than sitting there inert.
+    console.warn("[nd-tab-nudger] jump failed:", err.message);
+    loadNudge();
+  }
 }
 
 async function loadNudge() {
@@ -55,7 +75,9 @@ async function loadNudge() {
     renderCards(data.cards || []);
     renderTabList(data.open_tabs || []);
   } catch (err) {
-    cardsEl.innerHTML = `<p class="error">Couldn't reach the nudge server. Is it running?</p>`;
+    cardsEl.replaceChildren(
+      el("p", "error", "Couldn't reach the nudge server. Is it running?")
+    );
     console.error(err);
   }
 }

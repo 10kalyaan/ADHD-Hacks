@@ -81,13 +81,23 @@ chrome.tabs.query({}, async (tabs) => {
 // "jump to tab" button routes through here.
 chrome.runtime.onMessage.addListener((msg) => {
   if (msg && msg.type === "JUMP_TO_TAB" && typeof msg.tabId === "number") {
-    chrome.tabs.update(msg.tabId, { active: true }, () => {
-      if (chrome.runtime.lastError) {
-        // Tab closed since /nudge was fetched — reconcile so it stops being
-        // recommended.
-        console.warn("[nd-tab-nudger]", chrome.runtime.lastError.message);
-        syncOpenTabs();
-      }
-    });
+    focusTab(msg.tabId);
   }
 });
+
+async function focusTab(tabId) {
+  try {
+    const tab = await chrome.tabs.get(tabId);
+    await chrome.tabs.update(tabId, { active: true });
+    // Activating a tab does not raise its window, so a target in another
+    // window would go active off-screen and the jump would look broken.
+    if (tab.windowId != null) {
+      await chrome.windows.update(tab.windowId, { focused: true });
+    }
+  } catch (err) {
+    // Tab closed since /nudge was fetched — reconcile so it stops being
+    // recommended.
+    console.warn("[nd-tab-nudger] jump failed:", err.message);
+    syncOpenTabs();
+  }
+}
